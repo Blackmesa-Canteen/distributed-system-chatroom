@@ -3,6 +3,7 @@ package org.example.pojo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.example.network.ClientConnection;
 
 import java.util.List;
 import java.util.Map;
@@ -20,5 +21,5 @@ import java.util.Map;
 public class Room {
     private String roomId;
     private String ownerId;
-    private Map<String, String> guestConnections;
+    private Map<String, ClientConnection> guestConnections;
 }

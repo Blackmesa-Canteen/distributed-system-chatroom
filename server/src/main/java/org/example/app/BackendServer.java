@@ -9,20 +9,29 @@ import java.net.Socket;
 /**
  * @author Xiaotian
  * @program assignment1
- * @description
+ * @description server software
  * @create 2021-08-18 20:28
  */
-public class BackendServer {
+public class BackendServer extends Thread {
     private int port;
+    private boolean isRunning = false;
 
     private NetworkHandler handler;
     private ServerSocket serverSocket;
 
     public BackendServer(int port) {
         this.port = port;
-        
+
     }
 
+    @Override
+    public void run() {
+        runServer();
+    }
+
+    /**
+     * run the server
+     */
     public void runServer() {
         try {
             serverSocket = new ServerSocket(port);
@@ -55,7 +64,11 @@ public class BackendServer {
 
     }
 
-
-
-
+    /**
+     * check whether the server software is running
+     * @return true:running
+     */
+    public boolean isRunning() {
+        return isRunning;
+    }
 }
