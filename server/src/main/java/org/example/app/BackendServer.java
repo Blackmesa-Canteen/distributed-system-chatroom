@@ -1,7 +1,5 @@
 package org.example.app;
 
-import org.example.network.NetworkHandler;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -16,12 +14,14 @@ public class BackendServer extends Thread {
     private int port;
     private boolean isRunning = false;
 
-    private NetworkHandler handler;
+    private final ClientManager clientManager;
+    private final ChatRoomManager chatRoomManager;
     private ServerSocket serverSocket;
 
     public BackendServer(int port) {
         this.port = port;
-
+        clientManager = ClientManager.getInstance();
+        chatRoomManager = ChatRoomManager.getInstance();
     }
 
     @Override
@@ -41,7 +41,7 @@ public class BackendServer extends Thread {
                 Socket newClientConnection = serverSocket.accept();
                 if (newClientConnection != null) {
                     // serve the incoming client connection
-                    handler.handle(newClientConnection);
+                    clientManager.handleNewClientConnection(newClientConnection);
                 }
             }
         } catch (IOException e) {

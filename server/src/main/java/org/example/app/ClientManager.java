@@ -20,8 +20,9 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 public class ClientManager {
     private static ClientManager instance;
-    private Map<String, Client> liveClients;
+    private final Map<String, Client> liveClients;
     private final ThreadPoolExecutor executor;
+    private ChatRoomManager chatRoomManager;
 
     public static synchronized ClientManager getInstance() {
         if (instance == null) {
@@ -35,6 +36,7 @@ public class ClientManager {
     private ClientManager() {
         liveClients = new HashMap<>();
         executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+        chatRoomManager = ChatRoomManager.getInstance();
     }
 
     /**
@@ -68,10 +70,16 @@ public class ClientManager {
             client.setFormerRoomId("");
             client.setRoomId("MailHall");
 
+            //TODO: Join the new client to MainHall and send messages to others
+            chatRoomManager.joinClientToRoom("MailHall", client);
+
+            // put this client to live clients
+            liveClients.put(clientId, client);
+
             // store the client object reference in connection
             clientConnection.setClient(client);
 
-            // put the connection into pool
+            // put the connection into pool and run
             executor.execute(clientConnection);
 
         } catch (IOException e) {
@@ -84,21 +92,23 @@ public class ClientManager {
      * update client id
      * @return success
      */
-    public synchronized boolean updateClientId(Client client, String newId) {
+    public boolean updateClientId(Client client, String newId) {
 
         // check validaty of the newId
         if (StringVerifier.isValidClientId(newId)) {
             String OriginalId = client.getId();
 
-            if (liveClients.containsKey(OriginalId) && !liveClients.containsKey(newId)) {
-                // change reference hashmap
-                liveClients.put(newId,liveClients.remove(OriginalId));
+            synchronized (liveClients) {
+                if (liveClients.containsKey(OriginalId) && !liveClients.containsKey(newId)) {
+                    // change reference hashmap
+                    liveClients.put(newId,liveClients.remove(OriginalId));
 
-                // change client itself
-                client.setId(newId);
-                client.setFormerId(OriginalId);
+                    // change client itself
+                    client.setId(newId);
+                    client.setFormerId(OriginalId);
 
-                return true;
+                    return true;
+                }
             }
         }
 
@@ -110,16 +120,29 @@ public class ClientManager {
      * remove a client object from living clients
      * @return success
      */
-    public synchronized boolean removeClientFromLiveClients(Client client) {
-        Client res = null;
-        res = liveClients.remove(client.getId());
+    public void removeClientFromLiveClients(Client client) {
 
-        if (res != null) {
-            res = null;
-            return true;
-        } else {
-            System.out.println("remove client failed");
-            return false;
+        if (client != null) {
+
+            synchronized (liveClients) {
+                liveClients.remove(client.getId());
+            }
+        }
+    }
+
+    /**
+     * destroy a client.
+     * we need to unresiger client from room, then destroy client itself
+     * @param client
+     */
+    public void destroyClient(Client client) {
+        if (client != null) {
+            removeClientFromLiveClients(client);
+            client.setClientConnection(null);
+            client.setFormerRoomId(null);
+            client.setRoomId(null);
+            client.setFormerId(null);
+            client.setId(null);
         }
     }
 

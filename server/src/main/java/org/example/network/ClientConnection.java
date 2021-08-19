@@ -1,5 +1,7 @@
 package org.example.network;
 
+import org.example.app.ChatRoomManager;
+import org.example.app.ClientManager;
 import org.example.pojo.Client;
 import org.example.utils.Encoders;
 
@@ -40,6 +42,10 @@ public class ClientConnection implements Runnable {
         this.client = client;
     }
 
+    public Client getClient() {
+        return client;
+    }
+
     /**
      * sent UTF8 text to this connection instance.
      *
@@ -66,8 +72,30 @@ public class ClientConnection implements Runnable {
      * close this connection
      */
     public void closeMe() {
+        try {
+            ClientManager clientManager = ClientManager.getInstance();
+            ChatRoomManager roomManager = ChatRoomManager.getInstance();
 
+            // exit all the room
+            roomManager.unregisterClientFromAllChatRoom(client);
+
+            // remove it from alive lists
+            clientManager.removeClientFromLiveClients(client);
+
+            // close connection
+            socket.close();
+            inReader.close();
+            outWriter.close();
+
+            // destroy client object
+            clientManager.destroyClient(client);
+        } catch (IOException e) {
+            System.out.println("ERROR: close client connection error.");
+            e.printStackTrace();
+        }
     }
+
+
 
 
 }

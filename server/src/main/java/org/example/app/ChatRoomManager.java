@@ -17,7 +17,7 @@ public class ChatRoomManager {
     /** constants */
 
     private static ChatRoomManager instance;
-    private Map<String, Room> liveRooms;
+    private final Map<String, Room> liveRooms;
 
     public static synchronized ChatRoomManager getInstance() {
         if (instance == null) {
@@ -45,21 +45,25 @@ public class ChatRoomManager {
      * @param roomId room id
      * @return room pojo
      */
-    public synchronized Room findRoomById(String roomId) {
-        return liveRooms.get(roomId);
+    public Room findRoomById(String roomId) {
+        synchronized (liveRooms) {
+            return liveRooms.get(roomId);
+        }
     }
 
     /**
      * get room pojo list
      * @return room pojo list
      */
-    public synchronized List<Room> getRoomList() {
-        List<Room> roomList = new ArrayList<>();
-        for (String key : liveRooms.keySet()) {
-            roomList.add(liveRooms.get(key));
-        }
+    public List<Room> getRoomList() {
+        synchronized (liveRooms) {
+            List<Room> roomList = new ArrayList<>();
+            for (String key : liveRooms.keySet()) {
+                roomList.add(liveRooms.get(key));
+            }
 
-        return roomList;
+            return roomList;
+        }
     }
 
     /**
@@ -74,25 +78,27 @@ public class ChatRoomManager {
      *
      * @return true: success, need “Room jokes created"; false, need “Room jokes is invalid or already in use.”
      */
-    public synchronized boolean createNewEmptyRoom(String roomId, Client client) {
+    public boolean createNewEmptyRoom(String roomId, Client client) {
 
         // check names
         if (StringVerifier.isValidRoomId(roomId) &&
                 StringVerifier.isValidClientId(client.getId())) {
 
-            // check existence
-            if (!liveRooms.containsKey(roomId)) {
-                Room room = new Room();
-                room.setRoomId(roomId);
-                room.setOwner(client);
-                room.setClients(new ArrayList<>());
+            synchronized (liveRooms) {
+                // check existence
+                if (!liveRooms.containsKey(roomId)) {
+                    Room room = new Room();
+                    room.setRoomId(roomId);
+                    room.setOwner(client);
+                    room.setClients(new ArrayList<>());
 
-                // register owner to the room
-                // room.getClients().put(client.getId(), client);
+                    // register owner to the room
+                    // room.getClients().put(client.getId(), client);
 
-                // register room to liveRooms
-                liveRooms.put(roomId, room);
-                return true;
+                    // register room to liveRooms
+                    liveRooms.put(roomId, room);
+                    return true;
+                }
             }
         }
 
@@ -109,14 +115,16 @@ public class ChatRoomManager {
      * @param roomId the room id that will be deleted
      * @return successful
      */
-    public synchronized boolean deleteRoomById(String roomId) {
+    public boolean deleteRoomById(String roomId) {
 
-        if (liveRooms.containsKey(roomId)) {
-            ;
+        synchronized (liveRooms) {
+            if (liveRooms.containsKey(roomId)) {
+                ;
+            }
+
+            return false;
         }
 
-
-        return false;
     }
 
     /**
@@ -125,16 +133,18 @@ public class ChatRoomManager {
      * @param client client object
      * @return success?
      */
-    public synchronized boolean joinClientToRoom(String roomId, Client client) {
-        // check existence
-        if (liveRooms.containsKey(roomId)) {
-            Room room = liveRooms.get(roomId);
+    public boolean joinClientToRoom(String roomId, Client client) {
 
-//            for(Client c : room.getClients()) {
-//                if (c.getId().equals(client.getId())) {
-//                    return false;
-//                }
-//            }
+        Room room = null;
+
+        synchronized (liveRooms) {
+            if (liveRooms.containsKey(roomId)) {
+                room = liveRooms.get(roomId);
+            }
+        }
+
+        // check existence
+        if (room != null) {
 
             // check client existence
             if (room.getClients().contains(client)) {
@@ -145,6 +155,7 @@ public class ChatRoomManager {
             String previousRoomId = client.getRoomId();
 
             // register client to the new room
+            // TODO: send message when join a room
             room.getClients().add(client);
 
             // update client's info
@@ -162,17 +173,24 @@ public class ChatRoomManager {
      * @param client client object
      * @return success
      */
-    public synchronized boolean removeClientFromRoom(String roomId, Client client) {
-        // check existence
-        if (liveRooms.containsKey(roomId)) {
-            Room room = liveRooms.get(roomId);
+    public boolean removeClientFromRoom(String roomId, Client client) {
 
+        Room room = null;
+
+        synchronized (liveRooms) {
+            // check existence
+            if (liveRooms.containsKey(roomId)) {
+                room = liveRooms.get(roomId);
+            }
+        }
+
+        if (room != null) {
             // check client existence
             if (!room.getClients().contains(client)) {
                 return false;
             }
 
-            // register client to the new room
+            // TODO: send message when quit a Room
             room.getClients().remove(client);
 
             // update client's info
@@ -188,18 +206,22 @@ public class ChatRoomManager {
      * if the client goes offline, unresgiter the client
      * @param client
      */
-    public synchronized void unregisterClientFromAllChatRoom(Client client) {
-        // check the ownership and kick the client
-        for (String roomId : liveRooms.keySet()) {
-            Room room = liveRooms.get(roomId);
-            if (room.getOwner().equals(client)) {
-                room.setOwner(null);
-            }
-        }
+    public void unregisterClientFromAllChatRoom(Client client) {
 
-        // kick the client
-        String roomId = client.getRoomId();
-        liveRooms.get(roomId).getClients().remove(client);
+        synchronized (liveRooms) {
+            // check the ownership and kick the client
+            for (String roomId : liveRooms.keySet()) {
+                Room room = liveRooms.get(roomId);
+                if (room.getOwner().equals(client)) {
+                    room.setOwner(null);
+                }
+            }
+
+            // kick the client
+            // TODO: send message when offline
+            String roomId = client.getRoomId();
+            liveRooms.get(roomId).getClients().remove(client);
+        }
     }
 
 
@@ -207,13 +229,16 @@ public class ChatRoomManager {
      * destroy a room from living rooms
      * @param roomId
      */
-    public synchronized void destroyRoomFromLiveRooms(String roomId) {
-        Room room = liveRooms.get(roomId);
-        if (room != null) {
-            room.setRoomId(null);
-            room.setOwner(null);
-            room.setClients(null);
-            liveRooms.remove(roomId);
+    public void destroyRoomFromLiveRooms(String roomId) {
+
+        synchronized (liveRooms) {
+            Room room = liveRooms.get(roomId);
+            if (room != null) {
+                room.setRoomId(null);
+                room.setOwner(null);
+                room.setClients(null);
+                liveRooms.remove(roomId);
+            }
         }
     }
 
