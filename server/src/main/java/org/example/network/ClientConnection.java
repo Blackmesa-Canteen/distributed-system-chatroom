@@ -32,6 +32,8 @@ public class ClientConnection implements Runnable {
      */
     private final BufferedReader inReader;
 
+    private boolean isAlive = false;
+
     public ClientConnection(Socket socket) throws IOException {
         this.socket = socket;
         this.outWriter = new PrintWriter(socket.getOutputStream());
@@ -65,7 +67,32 @@ public class ClientConnection implements Runnable {
 
     @Override
     public void run() {
+        isAlive = true;
 
+        while (isAlive) {
+            try {
+
+                // if everything is fine, be stopped here
+                String inputString = inReader.readLine();
+
+                // check in alive or not
+                if(inputString != null) {
+                // handle the input
+
+
+                } else {
+                    // the input stream shutted down
+                    // lose connection with client
+                    isAlive = false;
+                }
+            } catch (IOException e) {
+                isAlive = false;
+                System.out.println("ERROR: client connection run error");
+                e.printStackTrace();
+            }
+        }
+
+        this.closeMe();
     }
 
     /**
@@ -83,9 +110,11 @@ public class ClientConnection implements Runnable {
             clientManager.removeClientFromLiveClients(client);
 
             // close connection
-            socket.close();
-            inReader.close();
-            outWriter.close();
+            if (!socket.isClosed()) {
+                socket.close();
+                inReader.close();
+                outWriter.close();
+            }
 
             // destroy client object
             clientManager.destroyClient(client);
@@ -94,8 +123,4 @@ public class ClientConnection implements Runnable {
             e.printStackTrace();
         }
     }
-
-
-
-
 }

@@ -2,6 +2,7 @@ package org.example.app;
 
 import org.example.network.ClientConnection;
 import org.example.pojo.Client;
+import org.example.service.ClientMsgService;
 import org.example.utils.StringVerifier;
 
 import java.io.IOException;
@@ -66,12 +67,20 @@ public class ClientManager {
             client.setFormerId("");
             client.setId(clientId);
 
+            // tell the client new identity
+            String newMsg = ClientMsgService.genNewIdentityMsg("", clientId);
+            clientConnection.sentTextMessageToMe(newMsg);
+
+
             // put this new client to MainHall
             client.setFormerRoomId("");
             client.setRoomId("MailHall");
 
-            //TODO: Join the new client to MainHall and send messages to others
+
+            //TODO: Join the new client to MainHall and send room change messages to others
             chatRoomManager.joinClientToRoom("MailHall", client);
+
+            //TODO: first join the main room, tell room contents and roomList
 
             // put this client to live clients
             liveClients.put(clientId, client);

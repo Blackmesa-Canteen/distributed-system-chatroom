@@ -13,8 +13,9 @@ import lombok.ToString;
 @NoArgsConstructor
 @Data
 @ToString
-public class clientMessage {
+public class RelayMessage {
 
     private String type = "message";
+    private String identity;
     private String content;
 }
