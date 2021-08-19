@@ -3,6 +3,7 @@ package org.example.pojo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.example.network.ClientConnection;
 
 /**
  * @author Xiaotian
@@ -16,5 +17,8 @@ import lombok.ToString;
 @ToString
 public class Client {
     private String id;
-    private Room currentRoom;
+    private String formerId;
+    private String formerRoomId;
+    private String roomId;
+    private ClientConnection clientConnection;
 }

@@ -1,5 +1,6 @@
 package org.example.network;
 
+import org.example.pojo.Client;
 import org.example.utils.Encoders;
 
 import java.io.*;
@@ -14,22 +15,29 @@ import java.net.Socket;
 public class ClientConnection implements Runnable {
 
     /** server socket */
-    private Socket socket;
+    private final Socket socket;
+
+    /** my client object */
+    private Client client;
 
     /**
      * output
      */
-    private PrintWriter outWriter;
+    private final PrintWriter outWriter;
 
     /**
      * Input
      */
-    private BufferedReader inReader;
+    private final BufferedReader inReader;
 
     public ClientConnection(Socket socket) throws IOException {
         this.socket = socket;
         this.outWriter = new PrintWriter(socket.getOutputStream());
         this.inReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    }
+
+    public void setClient(Client client) {
+        this.client = client;
     }
 
     /**

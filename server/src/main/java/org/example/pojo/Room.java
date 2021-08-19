@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.example.network.ClientConnection;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +20,8 @@ import java.util.Map;
 @NoArgsConstructor
 @ToString
 public class Room {
+    // immutable
     private String roomId;
-    private String ownerId;
-    private Map<String, ClientConnection> guestConnections;
+    private Client owner;
+    private ArrayList<Client> clients;
 }
