@@ -18,7 +18,11 @@ public class App {
         // handle input args -p portNumber
         handleArgs(args);
         System.out.println("port: " + port);
-        System.exit(0);
+
+        new BackendServer(port).start();
+
+        for(;;);
+        // System.exit(0);
     }
 
 

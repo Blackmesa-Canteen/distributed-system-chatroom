@@ -3,6 +3,7 @@ package org.example.app;
 import org.example.network.ClientConnection;
 import org.example.pojo.Client;
 import org.example.service.ClientMsgService;
+import org.example.service.RoomMsgService;
 import org.example.utils.StringVerifier;
 
 import java.io.IOException;
@@ -74,13 +75,11 @@ public class ClientManager {
 
             // put this new client to MainHall
             client.setFormerRoomId("");
-            client.setRoomId("MailHall");
+            client.setRoomId("MainHall");
 
 
-            //TODO: Join the new client to MainHall and send room change messages to others
-            chatRoomManager.joinClientToRoom("MailHall", client);
-
-            //TODO: first join the main room, tell room contents and roomList
+            //Join the new client to MainHall
+            chatRoomManager.joinClientToRoom("MainHall", client);
 
             // put this client to live clients
             liveClients.put(clientId, client);
@@ -131,6 +130,7 @@ public class ClientManager {
      */
     public void removeClientFromLiveClients(Client client) {
 
+        // TODO 删除用户不够及时
         if (client != null) {
 
             synchronized (liveClients) {
@@ -161,8 +161,9 @@ public class ClientManager {
      * currently not in use by any other connected client, e.g. guest5
      * @return
      */
+    // TODO 没有从1开始
     private String generateProperClientId() {
-        int smallestNumber = Integer.MAX_VALUE;
+        int res = 1;
         // match guest[number]
         String regex = "^guest+[1-9]\\d*$";
         ArrayList<Integer> existingIdNumber = new ArrayList<>();
@@ -171,26 +172,18 @@ public class ClientManager {
         for (String id : liveClients.keySet()) {
             if (id.matches(regex)) {
                 // remains number
-                String strNoChars = id.substring(4);
+                String strNoChars = id.substring(5);
                 int number = Integer.parseInt(strNoChars);
                 existingIdNumber.add(number);
-                if (number < smallestNumber) {
-                    smallestNumber = number;
-                }
             }
-        }
-
-        // if smallestNumber is still max, just start with guest 1
-        if (smallestNumber == Integer.MAX_VALUE) {
-            return "guest1";
         }
 
         // start from smallest, then check the existence of the current id
         // e.g.  1,2,4,5,7,8; smallest is 1, 1 exists, 2 exists, 3 not, is 3.
-        while(existingIdNumber.contains(smallestNumber)) {
-            smallestNumber += 1;
+        while(existingIdNumber.contains(res)) {
+            res += 1;
         }
 
-        return ("guest" + smallestNumber);
+        return ("guest" + res);
     }
 }

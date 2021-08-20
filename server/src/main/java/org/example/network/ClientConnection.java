@@ -32,12 +32,15 @@ public class ClientConnection implements Runnable {
      */
     private final BufferedReader inReader;
 
+    private final ChatRoomManager chatRoomManager;
+
     private boolean isAlive = false;
 
     public ClientConnection(Socket socket) throws IOException {
         this.socket = socket;
         this.outWriter = new PrintWriter(socket.getOutputStream());
         this.inReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        this.chatRoomManager = ChatRoomManager.getInstance();
     }
 
     public void setClient(Client client) {
@@ -78,7 +81,7 @@ public class ClientConnection implements Runnable {
                 // check in alive or not
                 if(inputString != null) {
                 // handle the input
-
+                    chatRoomManager.broadcastMessageInRoom(client.getRoomId(), inputString, client);
 
                 } else {
                     // the input stream shutted down

@@ -2,6 +2,7 @@ package org.example.app;
 
 import org.example.pojo.Client;
 import org.example.pojo.Room;
+import org.example.service.RoomMsgService;
 import org.example.utils.StringVerifier;
 
 import java.util.*;
@@ -119,11 +120,23 @@ public class ChatRoomManager {
         synchronized (liveRooms) {
             if (liveRooms.containsKey(roomId)) {
                 room = liveRooms.get(roomId);
+            } else {
+                // room is not exist
+                // if not change, sent roomChange message to client himself
+                client.getClientConnection().sentTextMessageToMe(
+                        RoomMsgService.genRoomChangeMsg(client.getId(), client.getRoomId(), roomId));
+
+                return false;
             }
 
             if (room != null) {
-                // check client existence
+                // check client existence, if already in the house, not change
                 if (room.getClients().contains(client)) {
+
+                    // if not change, sent roomChange message to client himself
+                    client.getClientConnection().sentTextMessageToMe(
+                            RoomMsgService.genRoomChangeMsg(client.getId(), client.getRoomId(), roomId));
+
                     return false;
                 }
 
@@ -131,12 +144,38 @@ public class ChatRoomManager {
                 previousRoomId = client.getRoomId();
 
                 // register client to the new room
-                // TODO: send message when join a room
                 room.getClients().add(client);
+
+                // send message when join a room, both previous and new room;
+                // for starting mainHall, solve duplicate broadcast message
+                if (!client.getFormerRoomId().equals("")) {
+                    broadcastMessageInRoom(previousRoomId,
+                            RoomMsgService.genRoomChangeMsg(client.getId(), previousRoomId, roomId),
+                            null);
+                    broadcastMessageInRoom(roomId,
+                            RoomMsgService.genRoomChangeMsg(client.getId(), previousRoomId, roomId),
+                            null);
+                } else {
+                    broadcastMessageInRoom(roomId,
+                            RoomMsgService.genRoomChangeMsg(client.getId(), "", roomId),
+                            null);
+                }
+
+                // if the room is mainhall
+                if (roomId.equals("MainHall")) {
+                    /*
+                    * If client is changing to the MainHall then the server will
+                    * also send a RoomContents message to the client (for the MainHall)
+                    * and a RoomList message after the RoomChange message
+                     */
+                    client.getClientConnection().sentTextMessageToMe(RoomMsgService.genRoomListMsg());
+                }
+
+                // client will get room content info
+                client.getClientConnection().sentTextMessageToMe(RoomMsgService.genRoomContentMsg(roomId));
             }
         }
 
-        // check existence
         if (room != null) {
             // update client's info
             client.setRoomId(room.getRoomId());
@@ -196,7 +235,7 @@ public class ChatRoomManager {
             // check the ownership and kick the client
             for (String roomId : liveRooms.keySet()) {
                 Room room = liveRooms.get(roomId);
-                if (room.getOwner().equals(client)) {
+                if (room.getOwner() != null && room.getOwner().equals(client)) {
                     room.setOwner(null);
                 }
             }
@@ -243,11 +282,13 @@ public class ChatRoomManager {
     public void broadcastMessageInRoom(String roomId, String message, Client clientExcluded) {
         synchronized (liveRooms) {
             Room room = liveRooms.get(roomId);
-            ArrayList<Client> clients = room.getClients();
+            if (room != null ) {
+                ArrayList<Client> clients = room.getClients();
 
-            for(Client client : clients) {
-                if(clientExcluded == null || !clientExcluded.equals(client)) {
-                    client.getClientConnection().sentTextMessageToMe(message);
+                for(Client client : clients) {
+                    if(clientExcluded == null || !clientExcluded.equals(client)) {
+                        client.getClientConnection().sentTextMessageToMe(message);
+                    }
                 }
             }
         }
