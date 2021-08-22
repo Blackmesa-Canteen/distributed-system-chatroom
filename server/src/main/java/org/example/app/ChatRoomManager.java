@@ -96,6 +96,13 @@ public class ChatRoomManager {
                     // register owner to the room
                     // room.getClients().put(client.getId(), client);
 
+                    /*
+                    * The server replies with a RoomList message only to the client that was creating the room.
+                    * If the room was created, then it will appear in the list. The client out puts either
+                    * e. g . “Room jokes created.” or “Room jokes is invalid or already in use.”
+                     */
+                    client.getClientConnection().sentTextMessageToMe(RoomMsgService.genRoomListMsg());
+
                     // register room to liveRooms
                     liveRooms.put(roomId, room);
                     return true;
@@ -107,62 +114,88 @@ public class ChatRoomManager {
     }
 
     /**
-     * Joing the room
-     * @param roomId roomId
+     * Joinng the room
+     *
+     * If roomid is invalid or non existent then client’s current room will not change.
+     *
+     * Otherwise the client’s current room will change to the requested room.
+     *
+     * If the room did not change then the server will send a RoomChange message only to the client
+     * that requested the room change.
+     *
+     * If the room did change, then server will send a RoomChange message to all clients currently
+     * in the requesting client’s current room and the requesting client’s requested room.
+     *
+     * If client is changing to the MainHall then the server will also send a RoomContents message to the client
+     * ( for the MainHall ) and a RoomList message after the RoomChange message.
+     *
+     * @param targetRoomId roomId
      * @param client client object
      * @return success?
      */
-    public boolean joinClientToRoom(String roomId, Client client) {
+    public boolean joinClientToRoom(String targetRoomId, Client client) {
 
-        Room room = null;
+        Room targetRoom = null;
+        Room oldRoom = null;
         String previousRoomId = "";
 
         synchronized (liveRooms) {
-            if (liveRooms.containsKey(roomId)) {
-                room = liveRooms.get(roomId);
+            if (liveRooms.containsKey(targetRoomId)) {
+                targetRoom = liveRooms.get(targetRoomId);
             } else {
                 // room is not exist
                 // if not change, sent roomChange message to client himself
+                // former == requested
                 client.getClientConnection().sentTextMessageToMe(
-                        RoomMsgService.genRoomChangeMsg(client.getId(), client.getRoomId(), roomId));
+                        RoomMsgService.genRoomChangeMsg(client.getId(), client.getRoomId(), client.getRoomId()));
 
                 return false;
             }
 
-            if (room != null) {
+            if (targetRoom != null) {
                 // check client existence, if already in the house, not change
-                if (room.getClients().contains(client)) {
+                if (targetRoom.getClients().contains(client)) {
 
                     // if not change, sent roomChange message to client himself
+                    // former == requested
                     client.getClientConnection().sentTextMessageToMe(
-                            RoomMsgService.genRoomChangeMsg(client.getId(), client.getRoomId(), roomId));
+                            RoomMsgService.genRoomChangeMsg(client.getId(), client.getRoomId(), client.getRoomId()));
 
                     return false;
                 }
 
-                // get client current RoomId before join the new room
+                // get client old RoomId before join the new room
                 previousRoomId = client.getRoomId();
 
                 // register client to the new room
-                room.getClients().add(client);
+                targetRoom.getClients().add(client);
 
                 // send message when join a room, both previous and new room;
                 // for starting mainHall, solve duplicate broadcast message
                 if (!client.getFormerRoomId().equals("")) {
+                    // if not first join the server
                     broadcastMessageInRoom(previousRoomId,
-                            RoomMsgService.genRoomChangeMsg(client.getId(), previousRoomId, roomId),
+                            RoomMsgService.genRoomChangeMsg(client.getId(), previousRoomId, targetRoomId),
                             null);
-                    broadcastMessageInRoom(roomId,
-                            RoomMsgService.genRoomChangeMsg(client.getId(), previousRoomId, roomId),
+                    broadcastMessageInRoom(targetRoomId,
+                            RoomMsgService.genRoomChangeMsg(client.getId(), previousRoomId, targetRoomId),
                             null);
+
+                    oldRoom = liveRooms.get(previousRoomId);
+
+                    // kick the client from oldRoom
+                    oldRoom.getClients().remove(client);
+                    // check whether the former room becomes empty
+                    handleEmptyRoom(previousRoomId);
                 } else {
-                    broadcastMessageInRoom(roomId,
-                            RoomMsgService.genRoomChangeMsg(client.getId(), "", roomId),
+                    // if first join the server
+                    broadcastMessageInRoom(targetRoomId,
+                            RoomMsgService.genRoomChangeMsg(client.getId(), "", targetRoomId),
                             null);
                 }
 
                 // if the room is mainhall
-                if (roomId.equals("MainHall")) {
+                if (targetRoomId.equals("MainHall")) {
                     /*
                     * If client is changing to the MainHall then the server will
                     * also send a RoomContents message to the client (for the MainHall)
@@ -172,61 +205,72 @@ public class ChatRoomManager {
                 }
 
                 // client will get room content info
-                client.getClientConnection().sentTextMessageToMe(RoomMsgService.genRoomContentMsg(roomId));
+                client.getClientConnection().sentTextMessageToMe(RoomMsgService.genRoomContentMsg(targetRoomId));
+
             }
         }
 
-        if (room != null) {
+        if (targetRoom != null) {
             // update client's info
-            client.setRoomId(room.getRoomId());
+            client.setRoomId(targetRoom.getRoomId());
             client.setFormerRoomId(previousRoomId);
             return true;
         }
+
+        // if not change, sent roomChange message to client himself
+        // former == requested
+        client.getClientConnection().sentTextMessageToMe(
+                RoomMsgService.genRoomChangeMsg(client.getId(), client.getRoomId(), client.getRoomId()));
         return false;
     }
 
     /**
-     * remove the client to the MainHall
-     * @param roomId room id that the client is kicked
-     * @param client client object
-     * @return success
+     * The server will first treat this as if all users of the room had sent a RoomChange message to the MainHall.
+     * Then the server will delete the room. The server replies with a RoomList message only to the client that
+     * was deleting the room. If the room was deleted, then it will not appear in the list.
+     *
+     * @param client
      */
-    public boolean removeClientFromRoom(String roomId, Client client) {
-
-        Room room = null;
-
+    public void deleteRoomFromOwner(Client client, String roomId) {
         synchronized (liveRooms) {
-            // check existence
-            if (liveRooms.containsKey(roomId)) {
-                room = liveRooms.get(roomId);
-            }
+            Room room = liveRooms.get(roomId);
 
             if (room != null) {
-                // check client existence
-                if (!room.getClients().contains(client)) {
-                    return false;
+                if (client.equals(room.getOwner())) {
+
+                    // kick all users inside to the MainHall
+                    List<Client> clients = room.getClients();
+
+                    for(Client c : clients) {
+                        joinClientToRoom("MainHall", c);
+                    }
+
+                    // remove room from liveRooms
+                    liveRooms.remove(roomId);
+
+                    // replies with a RoomList message only to the owner
+                    String roomListMsg = RoomMsgService.genRoomListMsg();
+                    client.getClientConnection().sentTextMessageToMe(roomListMsg);
                 }
-
-                // TODO: send message when quit a Room
-                room.getClients().remove(client);
-
-                // remove total empty room.
-                handleEmptyRoom(roomId);
             }
         }
-
-        if (room != null) {
-            // update client's info
-            client.setRoomId("MainHall");
-            client.setFormerRoomId(roomId);
-            return true;
-        }
-
-        return false;
     }
 
     /**
-     * if the client goes offline, unresgiter the client
+     * if the client goes offline, unregister the client
+     *
+     * The server will remove the user from their current room,
+     * sending an appropriate RoomChange message to all clients in that room.
+     * The roomid of the RoomChange message will
+     * be an empty string , to indicate the user is disconnecting.
+     * Rooms owned by the user who is disconnecting are set to have an empty owner.
+     *
+     * When the server sends the RoomChange event to the disconnecting client,
+     * then it can close the connection.
+     *
+     * When the client that is disconnecting receives the RoomChange message,
+     * then it can close the connection.
+     *
      * @param client
      */
     public void unregisterClientFromAllChatRoom(Client client) {
@@ -241,35 +285,15 @@ public class ChatRoomManager {
             }
 
             // kick the client
-            // TODO: send message to other people when offline
+            // send message to other people when offline
             String roomId = client.getRoomId();
+            String changeMessage = RoomMsgService.genRoomChangeMsg(client.getId(), roomId, "");
+            broadcastMessageInRoom(roomId, changeMessage, null);
+
             liveRooms.get(roomId).getClients().remove(client);
 
             // remove total empty room here.
             handleEmptyRoom(roomId);
-        }
-    }
-
-    /**
-     * The server will first treat this as if all users of the room
-     * had sent a RoomChange message to the MainHall. Then the server
-     * will delete the room. The server replies with a RoomList message
-     * only to the client that was deleting the room. If the room was
-     * deleted, then it will not appear in the list.
-     *
-     * @param roomId the room id that will be deleted
-     * @return successful
-     */
-    public void destroyRoomFromLiveRooms(String roomId) {
-
-        synchronized (liveRooms) {
-            Room room = liveRooms.get(roomId);
-            if (room != null) {
-                room.setRoomId(null);
-                room.setOwner(null);
-                room.setClients(null);
-                liveRooms.remove(roomId);
-            }
         }
     }
 
@@ -297,6 +321,12 @@ public class ChatRoomManager {
     /**
      * If any room other than MainHall has an empty owner and becomes
      * empty ( i.e. has no contents ) then the room is deleted.
+     *
+     * The server will first treat this as if all users of the room
+     * had sent a RoomChange message to the MainHall. Then the server
+     * will delete the room. The server replies with a RoomList message
+     * only to the client that was deleting the room. If the room was
+     * deleted, then it will not appear in the list.
      */
     public void handleEmptyRoom(String roomId) {
         Room thisRoom = liveRooms.get(roomId);

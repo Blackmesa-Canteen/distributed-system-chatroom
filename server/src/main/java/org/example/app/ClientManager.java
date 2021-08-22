@@ -2,6 +2,7 @@ package org.example.app;
 
 import org.example.network.ClientConnection;
 import org.example.pojo.Client;
+import org.example.pojo.Room;
 import org.example.service.ClientMsgService;
 import org.example.service.RoomMsgService;
 import org.example.utils.StringVerifier;
@@ -102,26 +103,59 @@ public class ClientManager {
      */
     public boolean updateClientId(Client client, String newId) {
 
+        /*
+         * If an invalid or currently in use identity is given then no change to identity will result
+         *
+         * If the identity does not change then the server will respond with a NewIdentity message only
+         * to the client that requested the identity change.
+         *
+         * If the identity does change then the server will send a NewIdentity message to all currently
+         * connected clients.
+         *  */
+
+        String originalId = client.getId();
+
         // check validaty of the newId
         if (StringVerifier.isValidClientId(newId)) {
-            String OriginalId = client.getId();
-
             synchronized (liveClients) {
-                if (liveClients.containsKey(OriginalId) && !liveClients.containsKey(newId)) {
+                if (liveClients.containsKey(originalId) && !liveClients.containsKey(newId)) {
                     // change reference hashmap
-                    liveClients.put(newId,liveClients.remove(OriginalId));
+                    liveClients.put(newId,liveClients.remove(originalId));
 
                     // change client itself
                     client.setId(newId);
-                    client.setFormerId(OriginalId);
+                    client.setFormerId(originalId);
+
+                    // send successful to all people.
+                    broadcastMessageToAllLivingClients(ClientMsgService.genNewIdentityMsg(originalId, newId), null);
 
                     return true;
                 }
             }
         }
 
+        // only cast new identity message to the requester
+        // former == identity
+        client.getClientConnection().sentTextMessageToMe(ClientMsgService.genNewIdentityMsg(originalId,originalId));
         System.out.println("update client id failed");
         return false;
+    }
+
+    /**
+     * broad cast message to all living user
+     * @param message message Text
+     * @param clientExcluded who you want to skip?
+     */
+    public void broadcastMessageToAllLivingClients(String message, Client clientExcluded) {
+        synchronized (liveClients) {
+
+            for (String key : liveClients.keySet()) {
+                Client client = liveClients.get(key);
+                if (clientExcluded == null || ! clientExcluded.equals(client)) {
+                    client.getClientConnection().sentTextMessageToMe(message);
+                }
+            }
+        }
     }
 
     /**
@@ -159,9 +193,8 @@ public class ClientManager {
      * the server generates a unique id for the client which is guest
      * followed by the smallest integer greater than 0 that is
      * currently not in use by any other connected client, e.g. guest5
-     * @return
+     * @return proper client id that can be used
      */
-    // TODO 没有从1开始
     private String generateProperClientId() {
         int res = 1;
         // match guest[number]

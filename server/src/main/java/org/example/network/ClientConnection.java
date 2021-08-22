@@ -74,14 +74,14 @@ public class ClientConnection implements Runnable {
 
         while (isAlive) {
             try {
-
                 // if everything is fine, be stopped here
                 String inputString = inReader.readLine();
 
                 // check in alive or not
                 if(inputString != null) {
-                // handle the input
-                    chatRoomManager.broadcastMessageInRoom(client.getRoomId(), inputString, client);
+                    // handle the input
+
+                    chatRoomManager.broadcastMessageInRoom(client.getRoomId(), inputString + "\n", client);
 
                 } else {
                     // the input stream shutted down

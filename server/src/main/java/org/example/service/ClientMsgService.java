@@ -17,14 +17,14 @@ public class ClientMsgService {
         jsonObject.setFormer(former);
         jsonObject.setIdentity(identity);
 
-        return new Gson().toJson(jsonObject);
+        return new Gson().toJson(jsonObject) + "\n";
     }
 
     public static String genIdentityChangeMsg(String identity) {
         IdentityChangeMessage jsonObject = new IdentityChangeMessage();
         jsonObject.setIdentity(identity);
 
-        return new Gson().toJson(jsonObject);
+        return new Gson().toJson(jsonObject) + "\n";
     }
 
 

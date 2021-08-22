@@ -19,10 +19,15 @@ public class App {
         handleArgs(args);
         System.out.println("port: " + port);
 
-        new BackendServer(port).start();
+        BackendServer instance = new BackendServer(port);
 
-        for(;;);
-        // System.exit(0);
+        instance.start();
+
+        for(;;) {
+            // check something
+            // if went wrong, instance.close(); break;
+        }
+        // System.exit(-1);
     }
 
 

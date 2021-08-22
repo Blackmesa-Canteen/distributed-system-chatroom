@@ -24,7 +24,7 @@ public class RoomMsgService {
         JoinRoomMessage jsonObject = new JoinRoomMessage();
         jsonObject.setRoomid(roomId);
 
-        return new Gson().toJson(jsonObject);
+        return new Gson().toJson(jsonObject) + "\n";
     }
 
     public static String genRoomChangeMsg(String identity, String former, String roomId) {
@@ -33,7 +33,7 @@ public class RoomMsgService {
         jsonObject.setFormer(former);
         jsonObject.setRoomid(roomId);
 
-        return new Gson().toJson(jsonObject);
+        return new Gson().toJson(jsonObject) + "\n";
     }
 
     /**
@@ -60,14 +60,14 @@ public class RoomMsgService {
         }
         jsonObject.setIdentities(identities);
 
-        return new Gson().toJson(jsonObject);
+        return new Gson().toJson(jsonObject) + "\n";
     }
 
     public static String genWhoMsg(String roomId) {
         WhoMessage jsonObject = new WhoMessage();
         jsonObject.setRoomid(roomId);
 
-        return new Gson().toJson(jsonObject);
+        return new Gson().toJson(jsonObject) + "\n";
     }
 
     /**
@@ -89,7 +89,7 @@ public class RoomMsgService {
         }
 
         jsonObject.setRooms(roomDTOS);
-        return new Gson().toJson(jsonObject);
+        return new Gson().toJson(jsonObject) + "\n";
     }
 
     /**
@@ -103,6 +103,6 @@ public class RoomMsgService {
         jsonObject.setIdentity(clientId);
         jsonObject.setContent(content);
 
-        return new Gson().toJson(jsonObject);
+        return new Gson().toJson(jsonObject) + "\n";
     }
 }
