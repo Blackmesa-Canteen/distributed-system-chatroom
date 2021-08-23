@@ -3,6 +3,7 @@ package org.example.msgBean;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.example.utils.Constants;
 
 /**
  * @author Xiaotian
@@ -15,7 +16,7 @@ import lombok.ToString;
 @ToString
 public class BroadcastMessage {
 
-    private String type = "message";
+    private String type = Constants.MESSAGE_JSON_TYPE;
     private String identity;
     private String content;
 }

@@ -46,6 +46,10 @@ public class RoomMsgService {
         jsonObject.setRoomid(roomId);
 
         Room room = chatRoomManager.getLiveRooms().get(roomId);
+        if (room == null) {
+            // TODO:等老师的回复，怎么处理。
+            return "ok\n";
+        }
         ArrayList<Client> clients = room.getClients();
         Client ownerObj = room.getOwner();
         String ownerId = "";

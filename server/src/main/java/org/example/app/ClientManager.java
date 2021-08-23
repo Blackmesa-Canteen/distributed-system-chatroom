@@ -134,11 +134,21 @@ public class ClientManager {
             }
         }
 
-        // only cast new identity message to the requester
+        // if fail, only cast new identity message to the requester
         // former == identity
         client.getClientConnection().sentTextMessageToMe(ClientMsgService.genNewIdentityMsg(originalId,originalId));
         System.out.println("update client id failed");
         return false;
+    }
+
+    /**
+     * get current room id of one client, then send json message response to that client
+     * @param client client obj
+     * @return room id
+     */
+    public void sentCurrentRoomIdToClient(Client client) {
+        String currentRoomId =  client.getRoomId();
+        client.getClientConnection().sentTextMessageToMe(RoomMsgService.genWhoMsg(currentRoomId));
     }
 
     /**

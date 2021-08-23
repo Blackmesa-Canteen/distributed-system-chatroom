@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.example.utils.Constants;
 
 /**
  * @author Xiaotian
@@ -17,6 +18,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 public class IdentityChangeMessage {
-    private String type = "identitychange";
+    private String type = Constants.IDENTITY_CHANGE_JSON_TYPE;
     private String identity;
 }

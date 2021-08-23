@@ -15,8 +15,6 @@ import java.util.*;
  */
 public class ChatRoomManager {
 
-    /** constants */
-
     private static ChatRoomManager instance;
     private final Map<String, Room> liveRooms;
 
@@ -96,6 +94,9 @@ public class ChatRoomManager {
                     // register owner to the room
                     // room.getClients().put(client.getId(), client);
 
+                    // register room to liveRooms
+                    liveRooms.put(roomId, room);
+
                     /*
                     * The server replies with a RoomList message only to the client that was creating the room.
                     * If the room was created, then it will appear in the list. The client out puts either
@@ -103,8 +104,6 @@ public class ChatRoomManager {
                      */
                     client.getClientConnection().sentTextMessageToMe(RoomMsgService.genRoomListMsg());
 
-                    // register room to liveRooms
-                    liveRooms.put(roomId, room);
                     return true;
                 }
             }
@@ -176,7 +175,7 @@ public class ChatRoomManager {
                     // if not first join the server
                     broadcastMessageInRoom(previousRoomId,
                             RoomMsgService.genRoomChangeMsg(client.getId(), previousRoomId, targetRoomId),
-                            null);
+                            client);
                     broadcastMessageInRoom(targetRoomId,
                             RoomMsgService.genRoomChangeMsg(client.getId(), previousRoomId, targetRoomId),
                             null);
@@ -345,5 +344,17 @@ public class ChatRoomManager {
 
     public Map<String, Room> getLiveRooms() {
         return liveRooms;
+    }
+
+    public void sendRoomListMsgToClient(Client client) {
+        synchronized (liveRooms) {
+            client.getClientConnection().sentTextMessageToMe(RoomMsgService.genRoomListMsg());
+        }
+    }
+
+    public void sendRoomContentMsgToClient(Client client, String roomId) {
+        synchronized (liveRooms) {
+            client.getClientConnection().sentTextMessageToMe(RoomMsgService.genRoomContentMsg(roomId));
+        }
     }
 }

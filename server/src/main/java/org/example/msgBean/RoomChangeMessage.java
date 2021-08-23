@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.example.utils.Constants;
 
 /**
  * @author Xiaotian
@@ -17,7 +18,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoomChangeMessage {
-    private String type = "roomchange";
+    private String type = Constants.ROOM_CHANGE_JSON_TYPE;
     private String identity;
     private String former;
     private String roomid;

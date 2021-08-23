@@ -3,6 +3,7 @@ package org.example.msgBean;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.example.utils.Constants;
 
 /**
  * @author Xiaotian
@@ -15,5 +16,5 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class QuitMessage {
-    private String type = "quit";
+    private String type = Constants.QUIT_JSON_TYPE;
 }
