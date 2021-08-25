@@ -3,6 +3,7 @@ package org.example.msgBean;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.example.utils.Constants;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ import java.util.List;
 @Data
 @ToString
 public class RoomListMessage {
-    private String type = "roomlist";
+    private String type = Constants.ROOM_LIST_JSON_TYPE;
     private List<RoomDTO> rooms;
 
 }

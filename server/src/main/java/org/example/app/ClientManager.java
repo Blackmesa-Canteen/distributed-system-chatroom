@@ -25,7 +25,7 @@ public class ClientManager {
     private static ClientManager instance;
     private final Map<String, Client> liveClients;
     private final ThreadPoolExecutor executor;
-    private ChatRoomManager chatRoomManager;
+    private final ChatRoomManager chatRoomManager;
 
     public static synchronized ClientManager getInstance() {
         if (instance == null) {
@@ -170,7 +170,6 @@ public class ClientManager {
 
     /**
      * remove a client object from living clients
-     * @return success
      */
     public void removeClientFromLiveClients(Client client) {
 

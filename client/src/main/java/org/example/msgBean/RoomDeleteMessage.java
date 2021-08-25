@@ -3,6 +3,7 @@ package org.example.msgBean;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.example.utils.Constants;
 
 /**
  * @author Xiaotian
@@ -15,6 +16,6 @@ import lombok.ToString;
 @ToString
 public class RoomDeleteMessage {
 
-    private String type = "delete";
+    private String type = Constants.DELETE_JSON_TYPE;
     private String roomid;
 }

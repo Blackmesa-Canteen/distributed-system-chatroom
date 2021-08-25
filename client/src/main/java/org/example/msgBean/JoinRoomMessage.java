@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.example.utils.Constants;
 
 /**
  * @author Xiaotian
@@ -17,6 +18,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class JoinRoomMessage {
-    private String type = "join";
+    private String type = Constants.JOIN_JSON_TYPE;
     private String roomid;
 }

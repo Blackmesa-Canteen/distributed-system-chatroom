@@ -36,9 +36,15 @@ public class ClientConnection implements Runnable {
      */
     private final BufferedReader inReader;
 
+    /**
+     * singleton of two containers
+     */
     private final ChatRoomManager chatRoomManager;
     private final ClientManager clientManager;
 
+    /**
+     * is client connection alive?
+     */
     private boolean isAlive = false;
 
     public ClientConnection(Socket socket) throws IOException {
@@ -63,6 +69,12 @@ public class ClientConnection implements Runnable {
      * @param text UTF8 json text
      */
     public void sentTextMessageToMe(String text) {
+
+        // skip null input
+        if (text == null) {
+            return;
+        }
+
         try {
             String utf8 = Encoders.StringToUtf8(text);
             outWriter.print(utf8);
@@ -110,6 +122,11 @@ public class ClientConnection implements Runnable {
         this.closeMe();
     }
 
+    /**
+     * handle the JSON protocol's json request from client
+     *
+     * @param inputString UTF-8 message from client
+     */
     private void handleJsonRequest(String inputString) {
         JSONObject requestDataObject = JSONObject.parseObject(inputString);
         if (requestDataObject == null) {
@@ -178,16 +195,14 @@ public class ClientConnection implements Runnable {
                         broadMessage,
                         this.client);
             }
-
             /* else */
             else {
-                System.out.println("JSON's type is not defined.");
+                throw new JSONException("JSON's type is not defined.");
             }
 
         } else {
             /* if not contains `type` key */
-            // debug
-            System.out.println("JSON's type is not defined.");
+            throw new JSONException("ERROR：JSON's type is not exist.");
         }
     }
 

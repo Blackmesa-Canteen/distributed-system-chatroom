@@ -4,6 +4,8 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
 /**
+ *
+ * chat room server
  * @author Xiaotian
  * @program assignment1
  * @description app
