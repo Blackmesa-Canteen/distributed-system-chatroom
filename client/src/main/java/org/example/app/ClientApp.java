@@ -67,7 +67,7 @@ public class ClientApp {
     }
 
     private static void argHelpInfo(CmdLineParser cmdLineParser) {
-        System.out.println("-p [port number 1~65535]");
+        System.out.println("[hostname] -p [port number 1~65535]");
         cmdLineParser.printUsage(System.out);
     }
 }
