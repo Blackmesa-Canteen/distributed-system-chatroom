@@ -11,7 +11,7 @@ import org.kohsuke.args4j.CmdLineParser;
  * @description app
  * @create 2021-08-17 23:30
  */
-public class App {
+public class ServerApp {
 
     private static int port = 4444;
 
