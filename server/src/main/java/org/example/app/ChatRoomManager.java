@@ -240,7 +240,9 @@ public class ChatRoomManager {
                     // kick all users inside to the MainHall
                     List<Client> clients = room.getClients();
 
-                    for(Client c : clients) {
+                    // deep copy clients list from room, to prevent ConcurrentModificationException
+                    List<Client> clientsNeedToGo = new ArrayList<>(clients);
+                    for(Client c : clientsNeedToGo) {
                         joinClientToRoom("MainHall", c);
                     }
 
