@@ -14,17 +14,13 @@ public class Reciever {
         Map<String,String> map  =  JE.Decode(JsonMessage);//decode message to map
         String result = "";
         if(map.get("type").equals(Constants.MESSAGE_JSON_TYPE)){//identify message or command
-            //System.out.println();
             result += handleMessage(map,client);
         }else{
             result += handleCommand(map,client,JsonMessage);
         }
 
 
-        //String header = client.getRoomId();//header of each output, which is the current roomid
-
         if(!result.equals("")){ //&& header!=null && header.length()!=0
-            //System.out.println(header.getClass().toString());
             System.out.println(result);
         }else{
             //System.out.println("such message handler haven't finished yet");
@@ -32,14 +28,10 @@ public class Reciever {
     }
 
     public String handleMessage(Map<String,String> map,Client client){
-        //String result = "["+ client.getRoomId()+"] "+map.get("identity")+": "+map.get("content");
-        //System.out.println(result);
         return ("["+ client.getRoomId()+"] "+map.get("identity")+": "+map.get("content"));
     }
 
     public String handleIdentityChangeMessage(Map<String,String> map,Client client){
-        //String result = map.get("identity");
-        //System.out.println(result);
         return map.get("identity");
     }
 
@@ -51,16 +43,23 @@ public class Reciever {
         String identity = map.get("identity");
         String former = map.get("former");
         String result = "";
-        if(former.length()==0){
+        if(former.length()==0){//first time to get identity
             result = "Connected to " + client.getServerConnection().gethostname() + " as " + identity;
+            //make change to local client object
+            client.setId(map.get("identity"));
+            client.setFormerId(map.get("former"));
         }else{
-            result =map.get("former")+"is now "+map.get("identity");
+            if(former.equals(client.getId())){//current client change identity
+                result = map.get("former")+"is now "+map.get("identity");
+                //make change to local client object
+                client.setId(map.get("identity"));
+                client.setFormerId(map.get("former"));
+            }else{//other identity change identity
+                result =map.get("former")+"is now "+map.get("identity");
+            }
+
         }
-        //make change to local client object
-        client.setId(map.get("identity"));
-        client.setFormerId(map.get("former"));
         return result;
-        //System.out.println("Identity change: from "+map.get("formemr")+"to "+map.get("identity"));
     }
 
     public void handleQuitMessage(){}
