@@ -14,6 +14,7 @@ public class Reciever {
         Map<String,String> map  =  JE.Decode(JsonMessage);//decode message to map
         String result = "";
         if(map.get("type").equals(Constants.MESSAGE_JSON_TYPE)){//identify message or command
+            //System.out.println();
             result += handleMessage(map,client);
         }else{
             result += handleCommand(map,client,JsonMessage);
@@ -73,7 +74,7 @@ public class Reciever {
         String result = "";
 
         if(roomid.length()==0){//quit response from server
-            result = client.getId() + " leaves " + client.getRoomId();
+            result = identity + " leaves " + client.getRoomId();
             return result;
         }
 
