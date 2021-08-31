@@ -1,89 +1,87 @@
 package org.example.network;
 
+import org.example.pojo.Client;
 import org.example.utils.Encoders;
+import org.example.utils.JsonEncoder;
+import org.example.utils.Reciever;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 
-/**
- * @author Xiaotian
- * @program assignment1
- * @description
- * @create 2021-08-26 00:41
- */
-public class serverConnection extends Thread{
-    private final Socket socket;
-    private String hostname;
 
-    /**
-     * Output
-     */
-    private final PrintWriter writer;
+public class ServerConnection extends Thread{
 
-    /**
-     * Input
-     */
-    private final BufferedReader reader;
+    private Socket socket;
+    private Client client;
+    private PrintWriter writer;
+    private BufferedReader reader;
+    private static JsonEncoder JE = new JsonEncoder();
+    private static Encoders En = new Encoders();
+    private boolean connection_alive = false;
 
-    private boolean isAlive = false;
-
-    public serverConnection(Socket socket, String hostname) throws IOException {
+    public ServerConnection(Socket socket, Client client)throws IOException {
         this.socket = socket;
-        this.hostname = hostname;
-        this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        this.client = client;
+        this.reader =new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.writer = new PrintWriter(socket.getOutputStream());
+        //this.reader = new DataInputStream(socket.getInputStream());
+        //this.writer = new DataOutputStream(socket.getOutputStream());
+    }
+
+    public boolean isalive(){
+        return connection_alive;
     }
 
     @Override
-    public void run() {
-        isAlive = true;
-
-        while (isAlive) {
-            /* 连接后,持续监听来自服务器的讯息，并处理之 */
-            /* 客户端输入并发送给服务端的动作，应该需要定义另一个线程 */
-        }
-    }
-
-    /**
-     * sent UTF8 text to this connection instance.
-     *
-     * @param text UTF8 json text
-     */
-    public void sentTextMessageToMe(String text) {
-
-        // skip null input
-        if (text == null) {
-            return;
-        }
-
-        try {
-            String utf8 = Encoders.StringToUtf8(text);
-            writer.print(utf8);
-            writer.flush();
-        } catch (Exception e) {
-            System.out.println("sent Text Message To server ERROR:");
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * close this connection
-     */
-    public void closeMe() {
-        // close connection
-        if (!socket.isClosed()) {
-            try {
-                socket.close();
-                reader.close();
-                writer.close();
-            } catch (IOException e) {
-                System.out.println("ERROR: close server connection error.");
-                e.printStackTrace();
+    public void run(){
+        connection_alive = true;
+        Reciever reciever = new Reciever();
+        while(connection_alive){
+            try{
+                String in = reader.readLine();
+                if(in != null){
+                    reciever.handle(in,client);
+                    //System.out.println(in);
+                }else{
+                    connection_alive = false;
+                }
+            }catch(IOException e){
+                connection_alive = false;
+                System.out.println(e.getMessage());
             }
 
         }
+        close();
+
     }
+
+
+    public void SendMessage(String message){
+        boolean isCommand = JE.isCommand(message);
+        if(isCommand){
+            String JsonMessage = En.StringToUtf8(JE.Encode(message));//Encode command to json UTF8
+            writer.println(JsonMessage);
+            writer.flush();
+        }else{
+            String JsonMessage = En.StringToUtf8(JE.EncodeMessage(message,client.getId()));//Encode message to json UTF8
+            writer.println(JsonMessage);
+            writer.flush();
+        }
+    }
+
+    public void close(){
+        try{
+            socket.close();
+            reader.close();
+            writer.close();
+        }catch(IOException e){
+            System.out.println(e.getMessage());
+        }
+
+    }
+
+    public String gethostname(){
+        return socket.getInetAddress().toString();
+    }
+
 }
