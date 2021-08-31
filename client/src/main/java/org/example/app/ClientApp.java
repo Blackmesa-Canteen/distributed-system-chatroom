@@ -21,6 +21,8 @@ public class ClientApp {
     private static String hostname = "localhost";
 
     public static void main(String[] args) {
+
+        handleArgs(args);
         // already get hostname and port.
         System.out.println();
 
@@ -47,7 +49,7 @@ public class ClientApp {
                 Thread.sleep(1000);
                 if(conn.isalive()){
                     //get input message from console
-                    System.out.print("["+client.getRoomId()+"] "+client.getId()+">");
+                    System.out.println("["+client.getRoomId()+"] "+client.getId()+">");
                     message = in.nextLine();
                     conn.SendMessage(message);
                 }else{
