@@ -1,10 +1,13 @@
 package org.example.app;
 
+import org.example.network.ServerConnection;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+import org.example.pojo.Client;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.Scanner;
 
 /**
  * @author Xiaotian
@@ -18,10 +21,48 @@ public class ClientApp {
     private static String hostname = "localhost";
 
     public static void main(String[] args) {
-        handleArgs(args);
-
         // already get hostname and port.
         System.out.println();
+
+        boolean connection_alive = false;
+
+        //Default message is null
+        String message = "";
+        //Create console Scanner
+        Scanner in = new Scanner(System.in);
+        //Create Client Object to store info
+        Client client = new Client();
+        //Start connection
+        try{
+            Socket s = new Socket(hostname,port);
+            connection_alive = true;
+            org.example.network.ServerConnection conn = new ServerConnection(s,client);
+            conn.start();
+            client.setServerConnection(conn);
+            //System.out.println("Connected to "+hostname);
+
+            //listen on console Scanner
+            while(connection_alive){
+                //set maximum waiting time for connection
+                Thread.sleep(1000);
+                if(conn.isalive()){
+                    //get input message from console
+                    System.out.print("["+client.getRoomId()+"] "+client.getId()+">");
+                    message = in.nextLine();
+                    conn.SendMessage(message);
+                }else{
+                    connection_alive = false;
+                }
+            }
+
+        }catch(IOException e){
+            System.out.println(e.getMessage());
+        }catch(InterruptedException e){
+            Thread.currentThread().interrupt();
+        }
+
+
+
 
     }
 
@@ -70,4 +111,7 @@ public class ClientApp {
         System.out.println("[hostname] -p [port number 1~65535]");
         cmdLineParser.printUsage(System.out);
     }
+
+
+
 }
