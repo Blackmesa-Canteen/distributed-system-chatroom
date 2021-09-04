@@ -1,11 +1,11 @@
 package org.example.utils;
 
 import com.google.gson.Gson;
+
 import java.util.*;
 
 import org.example.msgBean.*;
 import org.example.pojo.Client;
-import org.example.pojo.Room;
 
 public class Reciever {
     private static final JsonEncoder JE = new JsonEncoder();
@@ -14,30 +14,22 @@ public class Reciever {
         Map<String,String> map  =  JE.Decode(JsonMessage);//decode message to map
         String result = "";
         if(map.get("type").equals(Constants.MESSAGE_JSON_TYPE)){//identify message or command
-            result += handleMessage(map,client);
+            result += handleMessage(map);
         }else{
             result += handleCommand(map,client,JsonMessage);
         }
 
 
-        if(!result.equals("")){ //&& header!=null && header.length()!=0
+        if(!result.equals("")){
             System.out.println(result);
         }else{
             //System.out.println("such message handler haven't finished yet");
         }
     }
 
-    public String handleMessage(Map<String,String> map,Client client){
-        return ("["+ client.getRoomId()+"] "+map.get("identity")+": "+map.get("content"));
+    public String handleMessage(Map<String,String> map){
+        return (map.get("identity")+": "+map.get("content"));
     }
-
-    public String handleIdentityChangeMessage(Map<String,String> map,Client client){
-        return map.get("identity");
-    }
-
-    public void handleJoinRoomMessage(Map<String,String> map,Client client){}
-
-    public void handleListMessage(Map<String,String> map,Client client){}
 
     public String handleNewIdentityMessage(Map<String,String> map, Client client){
         String identity = map.get("identity");
@@ -50,21 +42,17 @@ public class Reciever {
             client.setFormerId(map.get("former"));
         }else{
             if(former.equals(client.getId())){//current client change identity
-                result = map.get("former")+"is now "+map.get("identity");
+                result = map.get("former")+" is now "+map.get("identity");
                 //make change to local client object
                 client.setId(map.get("identity"));
                 client.setFormerId(map.get("former"));
             }else{//other identity change identity
-                result =map.get("former")+"is now "+map.get("identity");
+                result =map.get("former")+" is now "+map.get("identity");
             }
 
         }
         return result;
     }
-
-    public void handleQuitMessage(){}
-
-    public void handleRelayMessage(Map<String,String> map, Client client){}
 
     public String handleRoomChangeMessage(Map<String,String> map, Client client){
         String identity = map.get("identity");
@@ -74,6 +62,9 @@ public class Reciever {
 
         if(roomid.length()==0){//quit response from server
             result = identity + " leaves " + client.getRoomId();
+            if(identity.equals(client.getId())){//if it is the current client who quits from server
+                result += "\nDisconnected from localhost";
+            }
             return result;
         }
 
@@ -90,11 +81,10 @@ public class Reciever {
         return result;
     }
 
-    public String handleRoomContentsMessage(Map<String,String> map, Client client,String JsonMessage){
+    public String handleRoomContentsMessage(String JsonMessage){
         Gson gson = new Gson();
         RoomContentsMessage RCM = gson.fromJson(JsonMessage,RoomContentsMessage.class);
 
-        //List<String> identities = RCM.getIdentities();
         String identities = "";
         for(String identity:RCM.getIdentities()){
             if(identity.equals(RCM.getOwner())){
@@ -108,69 +98,47 @@ public class Reciever {
         return result;
     }
 
-    public void handleRoomCreateMessage(){
 
-    }
-
-    public void handleRoomDeleteMessage(){
-
-    }
-    public void handleRoomDTO(){
-
-    }
-
-
-    public String handleRoomListMessage(Map<String,String> map, Client client,String JsonMessage){
+    public String handleRoomListMessage(Client client,String JsonMessage){
+        String result = "";
         Gson gson = new Gson();
         RoomListMessage RLM = gson.fromJson(JsonMessage,RoomListMessage.class);
-        String available_rooms = "";
-        for(RoomDTO RDTO:RLM.getRooms()){
-            available_rooms += RDTO.getRoomid()+": "+RDTO.getCount()+"\n";
+        ArrayList<String> temp_room_list = new ArrayList<>();
+        if(client.isWaiting()){
+            System.out.println("room " + client.getTempRoomName() + " created");
+            client.setWaiting(false);
+            client.setTempRoomName(null);
+            for(RoomDTO RDTO:RLM.getRooms()){
+                temp_room_list.add(RDTO.getRoomid());//add roomlist to local room_list variable
+                client.setRoomlist(temp_room_list);
+                //result += RDTO.getRoomid()+": "+RDTO.getCount()+" guests\n";
+            }
+        }else{
+            for(RoomDTO RDTO:RLM.getRooms()){
+                temp_room_list.add(RDTO.getRoomid());//add roomlist to local room_list variable
+                client.setRoomlist(temp_room_list);
+                result += RDTO.getRoomid()+": "+RDTO.getCount()+" guests\n";
+            }
         }
-        //String result = "available rooms: " + available_rooms;
-        return available_rooms.trim();
+        return result.trim();
     }
 
-    public void handleWhoMessage(){
-
-    }
-
-    public void handleRoomListMessage(Map<String,String> map, Room room){
-
-    }
 
     public String handleCommand(Map<String,String> map, Client client,String JsonMessage){
         String type = map.get("type");
         String result = "";
         switch(type){
-            case "join":
-                break;
             case "newidentity":
                 result = handleNewIdentityMessage(map,client);
-                break;
-            case "identitychange":
-                result = handleIdentityChangeMessage(map,client);
                 break;
             case "roomchange":
                 result = handleRoomChangeMessage(map,client);
                 break;
             case "roomcontents":
-                result = handleRoomContentsMessage(map,client,JsonMessage);
-                break;
-            case "who":
+                result = handleRoomContentsMessage(JsonMessage);
                 break;
             case "roomlist":
-                result = handleRoomListMessage(map,client,JsonMessage);
-                break;
-            case "list":
-                break;
-            case "createroom":
-                break;
-            case "delete":
-                break;
-            case "message":
-                break;
-            case "quit":
+                result = handleRoomListMessage(client,JsonMessage);
                 break;
             default:
                 System.out.println("Command Error");

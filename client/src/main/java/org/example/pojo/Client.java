@@ -5,6 +5,9 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.example.network.ServerConnection;
 
+import java.time.temporal.Temporal;
+import java.util.ArrayList;
+
 /**
  * @author Xiaotian
  * @program assignment1
@@ -21,4 +24,7 @@ public class Client {
     private String formerRoomId;
     private String roomId;
     private ServerConnection serverConnection;
+    private ArrayList<String> roomlist;
+    private String tempRoomName;
+    private boolean waiting = false;
 }

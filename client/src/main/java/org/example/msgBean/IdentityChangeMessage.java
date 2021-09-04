@@ -20,4 +20,8 @@ import org.example.utils.Constants;
 public class IdentityChangeMessage {
     private String type = Constants.IDENTITY_CHANGE_JSON_TYPE;
     private String identity;
+
+/*    public IdentityChangeMessage(String identity){
+        this.identity = identity;
+    }*/
 }

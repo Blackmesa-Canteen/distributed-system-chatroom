@@ -14,6 +14,7 @@ import org.example.utils.Constants;
 @NoArgsConstructor
 @Data
 @ToString
+
 public class BroadcastMessage {
 
     private String type = Constants.MESSAGE_JSON_TYPE;
