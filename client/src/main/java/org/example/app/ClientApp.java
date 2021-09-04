@@ -51,7 +51,7 @@ public class ClientApp {
                     //get input message from console
                     System.out.println("["+client.getRoomId()+"] "+client.getId()+">");
                     message = in.nextLine();
-                    conn.SendMessage(message);
+                    conn.SendMessage(message,client);
                 }else{
                     connection_alive = false;
                 }

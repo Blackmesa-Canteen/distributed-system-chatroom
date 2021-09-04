@@ -20,5 +20,4 @@ public class Constants {
     public static String DELETE_JSON_TYPE = "delete";
     public static String MESSAGE_JSON_TYPE = "message";
     public static String QUIT_JSON_TYPE = "quit";
-
 }
