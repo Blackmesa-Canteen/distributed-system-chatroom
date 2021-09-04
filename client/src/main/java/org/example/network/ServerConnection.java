@@ -41,7 +41,7 @@ public class ServerConnection extends Thread{
                 String in = reader.readLine();
                 if(in != null){
                     reciever.handle(in,client);
-                    System.out.println(in);
+                    //System.out.println(in);
                 }else{
                     connection_alive = false;
                 }
