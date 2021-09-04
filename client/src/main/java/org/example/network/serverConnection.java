@@ -22,7 +22,7 @@ public class ServerConnection extends Thread{
     public ServerConnection(Socket socket, Client client)throws IOException {
         this.socket = socket;
         this.client = client;
-        this.reader =new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.writer = new PrintWriter(socket.getOutputStream());
         //this.reader = new DataInputStream(socket.getInputStream());
         //this.writer = new DataOutputStream(socket.getOutputStream());
@@ -56,16 +56,18 @@ public class ServerConnection extends Thread{
     }
 
 
-    public void SendMessage(String message){
-        boolean isCommand = JE.isCommand(message);
-        if(isCommand){
-            String JsonMessage = En.StringToUtf8(JE.Encode(message));//Encode command to json UTF8
-            writer.println(JsonMessage);
-            writer.flush();
-        }else{
-            String JsonMessage = En.StringToUtf8(JE.EncodeMessage(message,client.getId()));//Encode message to json UTF8
-            writer.println(JsonMessage);
-            writer.flush();
+    public void SendMessage(String message,Client client){
+        if(message!=null && !message.equals("")){
+            boolean isCommand = JE.isCommand(message);
+            if(isCommand){
+                String JsonMessage = En.StringToUtf8(JE.Encode(message,client));//Encode command to json UTF8
+                writer.println(JsonMessage);
+                writer.flush();
+            }else{
+                String JsonMessage = En.StringToUtf8(JE.EncodeMessage(message));//Encode message to json UTF8
+                writer.println(JsonMessage);
+                writer.flush();
+            }
         }
     }
 
