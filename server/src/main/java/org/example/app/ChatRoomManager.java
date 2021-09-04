@@ -105,6 +105,8 @@ public class ChatRoomManager {
                     client.getClientConnection().sentTextMessageToMe(RoomMsgService.genRoomListMsg());
 
                     return true;
+                }else{
+                    client.getClientConnection().sentTextMessageToMe(RoomMsgService.genRoomListMsg());
                 }
             }
         }
@@ -250,6 +252,9 @@ public class ChatRoomManager {
                     liveRooms.remove(roomId);
 
                     // replies with a RoomList message only to the owner
+                    String roomListMsg = RoomMsgService.genRoomListMsg();
+                    client.getClientConnection().sentTextMessageToMe(roomListMsg);
+                }else{
                     String roomListMsg = RoomMsgService.genRoomListMsg();
                     client.getClientConnection().sentTextMessageToMe(roomListMsg);
                 }
