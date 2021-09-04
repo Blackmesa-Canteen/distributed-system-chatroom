@@ -43,17 +43,19 @@ public class ClientApp {
             client.setServerConnection(conn);
             //System.out.println("Connected to "+hostname);
 
+            //set maximum waiting time for connection
+            Thread.sleep(1000);
+
             //listen on console Scanner
-            while(connection_alive){
-                //set maximum waiting time for connection
-                Thread.sleep(1000);
+            while(conn.isalive()){
+                Thread.sleep(1000);//set maximum waiting time for connection
                 if(conn.isalive()){
                     //get input message from console
                     System.out.println("["+client.getRoomId()+"] "+client.getId()+">");
                     message = in.nextLine();
                     conn.SendMessage(message,client);
                 }else{
-                    connection_alive = false;
+                    conn.close();
                 }
             }
 

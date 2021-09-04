@@ -20,4 +20,8 @@ public class Constants {
     public static String DELETE_JSON_TYPE = "delete";
     public static String MESSAGE_JSON_TYPE = "message";
     public static String QUIT_JSON_TYPE = "quit";
+    public static String WAIT_CREATE_RESPONSE = "wait1";
+    public static String WAIT_DELETE_RESPONSE = "wait2";
+    public static String WAIT_LIST_RESPONSE = "wait3";
+    public static String COMMON_STATUS = "commonstatus";
 }
