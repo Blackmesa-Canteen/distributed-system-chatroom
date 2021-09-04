@@ -64,24 +64,21 @@ public class JsonEncoder {
                     break;
                 }
 
+
             case "createroom":
                 if(arr.length == 1){
                     System.out.println("invalid command, createroom option needs 1 argument");
                     break;
                 }else if(arr.length == 2){
-                    StringVerifier SV = new StringVerifier();
-                    for(String roomname:client.getRoomlist()){
-                        if(roomname.equals(arr[1]) || !SV.isValidRoomId(arr[1])){//check if the roomname has already exists or invalid
-                            System.out.println("room " + arr[1] + " is invalid or already in use");
-                            return "";
-                        }
-                    }
                     RoomCreateMessage RCM = new RoomCreateMessage();
                     RCM.setRoomid(arr[1]);
                     result = gson.toJson(RCM);
-                    System.out.println("in Jsonencoder setwaiting true");
-                    client.setWaiting(true);
+
+                    //client.setWaiting(true);
+                    client.setStatus(Constants.WAIT_CREATE_RESPONSE);
                     client.setTempRoomName(arr[1]);
+                    //send a list request to update local roomlist
+                    //client.getServerConnection().SendMessage("#list",client);
                     break;
                 }else{
                     System.out.println("command error");
@@ -96,6 +93,11 @@ public class JsonEncoder {
                     RoomDeleteMessage RDM = new RoomDeleteMessage();
                     RDM.setRoomid(arr[1]);
                     result = gson.toJson(RDM);
+                    client.setStatus(Constants.WAIT_DELETE_RESPONSE);
+                    client.setTempRoomName(arr[1]);
+
+                    //send a list request to update local roomlist
+                    //client.getServerConnection().SendMessage("#list",client);
                     break;
                 }else{
                     System.out.println("command error");
@@ -115,7 +117,11 @@ public class JsonEncoder {
                     System.out.println("quit command error");
                     break;
                 }
-
+            case "list":
+                ListMessage LM = new ListMessage();
+                result = gson.toJson(LM);
+                //client.setStatus(Constants.WAIT_LIST_RESPONSE);
+                break;
             default:
                 System.out.println("No such command");
         }

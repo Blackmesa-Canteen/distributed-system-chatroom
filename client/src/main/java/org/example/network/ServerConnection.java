@@ -46,8 +46,9 @@ public class ServerConnection extends Thread{
                     connection_alive = false;
                 }
             }catch(IOException e){
-                connection_alive = false;
                 System.out.println(e.getMessage());
+                close();
+                System.exit(0);
             }
 
         }
@@ -76,6 +77,7 @@ public class ServerConnection extends Thread{
             socket.close();
             reader.close();
             writer.close();
+            connection_alive = false;
         }catch(IOException e){
             System.out.println(e.getMessage());
         }
