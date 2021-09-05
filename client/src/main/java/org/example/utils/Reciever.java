@@ -7,6 +7,8 @@ import java.util.*;
 import org.example.msgBean.*;
 import org.example.pojo.Client;
 
+import javax.xml.stream.events.Comment;
+
 public class Reciever {
     private static final JsonEncoder JE = new JsonEncoder();
 
@@ -63,7 +65,8 @@ public class Reciever {
         if(roomid.length()==0){//quit response from server
             result = identity + " leaves " + client.getRoomId();
             if(identity.equals(client.getId())){//if it is the current client who quits from server
-                result += "\nDisconnected from localhost";
+                result += "\nDisconnected from " + client.getServerConnection().gethostname();
+                client.getServerConnection().close();
             }
             return result;
         }
@@ -99,27 +102,75 @@ public class Reciever {
     }
 
 
+/*    public String handleRoomListMessage(Client client,String JsonMessage){
+        String result = "";
+        Gson gson = new Gson();
+        RoomListMessage RLM = gson.fromJson(JsonMessage,RoomListMessage.class);
+        if(client.isWaiting()){
+            System.out.println("room " + client.getTempRoomName() + " created");
+            //client.setWaiting(false);
+
+            result = UpdateLocalRoomList(client,RLM);
+            client.setTempRoomName(null);
+            client.setQuietMode(false);
+        }else{
+            result = UpdateLocalRoomList(client,RLM);
+        }
+
+        return result.trim();
+    }*/
+
     public String handleRoomListMessage(Client client,String JsonMessage){
         String result = "";
         Gson gson = new Gson();
         RoomListMessage RLM = gson.fromJson(JsonMessage,RoomListMessage.class);
-        ArrayList<String> temp_room_list = new ArrayList<>();
-        if(client.isWaiting()){
-            System.out.println("room " + client.getTempRoomName() + " created");
-            client.setWaiting(false);
-            client.setTempRoomName(null);
-            for(RoomDTO RDTO:RLM.getRooms()){
-                temp_room_list.add(RDTO.getRoomid());//add roomlist to local room_list variable
-                client.setRoomlist(temp_room_list);
-                //result += RDTO.getRoomid()+": "+RDTO.getCount()+" guests\n";
+        if(client.getStatus()!=null){
+            switch(client.getStatus()){
+                case "wait1"://wait for create room response
+                    boolean success = CreateRoomSuccess(client,RLM);
+                    if(success){
+                        result = "room " + client.getTempRoomName() + " created";
+                    }else{
+                        result = "room " + client.getTempRoomName() + " is invalid or already used";
+                    }
+                    UpdateLocalRoomList(client,RLM);
+                    client.setTempRoomName(null);
+                    client.setStatus(Constants.COMMON_STATUS);//finished, back to commom status
+                    break;
+
+                case "wait2"://wait for delete room response
+                    boolean success2 = DeleteRoomSuccess(client,RLM);
+
+                    if(success2){
+                        result = "delete " + client.getTempRoomName() + " success";
+                    }else{
+                        result = "delete " + client.getTempRoomName() + " fails";
+                    }
+
+                    UpdateLocalRoomList(client,RLM);
+                    client.setStatus(Constants.COMMON_STATUS);
+                    client.setTempRoomName(null);
+                    //client.setStatus(Constants.COMMON_STATUS);
+                    break;
+
+                case "wait3"://wait for list request response
+                    //client.setQuietMode(true);//no output needed
+                    UpdateLocalRoomList(client,RLM);
+                    client.setStatus(Constants.COMMON_STATUS);
+                    break;
+                case "commonstatus":
+                    result = UpdateLocalRoomList(client,RLM);
+                    client.setStatus(Constants.COMMON_STATUS);
+                    break;
+                default:
+                    UpdateLocalRoomList(client,RLM);
             }
         }else{
-            for(RoomDTO RDTO:RLM.getRooms()){
-                temp_room_list.add(RDTO.getRoomid());//add roomlist to local room_list variable
-                client.setRoomlist(temp_room_list);
-                result += RDTO.getRoomid()+": "+RDTO.getCount()+" guests\n";
-            }
+            result = UpdateLocalRoomList(client,RLM);
+            client.setStatus(Constants.COMMON_STATUS);
         }
+
+
         return result.trim();
     }
 
@@ -145,5 +196,46 @@ public class Reciever {
         }
         return result;
     }
+
+    private String UpdateLocalRoomList(Client client, RoomListMessage RLM){
+        ArrayList<String> temp_room_list = new ArrayList<>();
+        String result = "";
+        for(RoomDTO RDTO:RLM.getRooms()){
+            temp_room_list.add(RDTO.getRoomid());//add roomlist to local room_list variable
+            client.setRoomlist(temp_room_list);
+            result += RDTO.getRoomid()+": "+RDTO.getCount()+" guests\n";
+
+        }
+        return result;
+    }
+
+    private boolean CreateRoomSuccess(Client client, RoomListMessage RLM){
+        ArrayList<String> newlist = new ArrayList<>();
+        for(RoomDTO RDTO:RLM.getRooms()){
+            newlist.add(RDTO.getRoomid());//add roomlist to local room_list variable
+        }
+        ArrayList<String> oldlist = client.getRoomlist();
+        if(newlist.contains(client.getTempRoomName()) && !oldlist.contains(client.getTempRoomName())){
+            return  true;
+        }else{
+            return  false;
+        }
+    }
+
+    private boolean DeleteRoomSuccess(Client client, RoomListMessage RLM){
+        ArrayList<String> newlist = new ArrayList<>();
+        for(RoomDTO RDTO:RLM.getRooms()){
+            newlist.add(RDTO.getRoomid());//add roomlist to local room_list variable
+        }
+        ArrayList<String> oldlist = client.getRoomlist();
+        if(newlist.contains(client.getTempRoomName()) && !oldlist.contains(client.getTempRoomName())){
+            return  false;
+        }else{
+            return  true;
+        }
+    }
+
+
+
 
 }

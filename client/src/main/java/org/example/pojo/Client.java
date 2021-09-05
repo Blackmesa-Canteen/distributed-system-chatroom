@@ -26,5 +26,7 @@ public class Client {
     private ServerConnection serverConnection;
     private ArrayList<String> roomlist;
     private String tempRoomName;
+    private String status;
     private boolean waiting = false;
+    private boolean quietMode = true;
 }
