@@ -193,7 +193,7 @@ public class ClientConnection implements Runnable {
                 String broadMessage = RoomMsgService.genRelayMsg(this.client.getId(), content);
                 chatRoomManager.broadcastMessageInRoom(this.client.getRoomId(),
                         broadMessage,
-                        this.client);
+                        null);
             }
             /* else */
             else {

@@ -105,6 +105,8 @@ public class ChatRoomManager {
                     client.getClientConnection().sentTextMessageToMe(RoomMsgService.genRoomListMsg());
 
                     return true;
+                }else{
+                    client.getClientConnection().sentTextMessageToMe(RoomMsgService.genRoomListMsg());
                 }
             }
         }
@@ -240,7 +242,9 @@ public class ChatRoomManager {
                     // kick all users inside to the MainHall
                     List<Client> clients = room.getClients();
 
-                    for(Client c : clients) {
+                    // deep copy clients list from room, to prevent ConcurrentModificationException
+                    List<Client> clientsNeedToGo = new ArrayList<>(clients);
+                    for(Client c : clientsNeedToGo) {
                         joinClientToRoom("MainHall", c);
                     }
 
@@ -248,6 +252,9 @@ public class ChatRoomManager {
                     liveRooms.remove(roomId);
 
                     // replies with a RoomList message only to the owner
+                    String roomListMsg = RoomMsgService.genRoomListMsg();
+                    client.getClientConnection().sentTextMessageToMe(roomListMsg);
+                }else{
                     String roomListMsg = RoomMsgService.genRoomListMsg();
                     client.getClientConnection().sentTextMessageToMe(roomListMsg);
                 }
