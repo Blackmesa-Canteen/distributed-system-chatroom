@@ -66,6 +66,7 @@ public class Reciever {
             result = identity + " leaves " + client.getRoomId();
             if(identity.equals(client.getId())){//if it is the current client who quits from server
                 result += "\nDisconnected from " + client.getServerConnection().gethostname();
+                client.setStatus(Constants.CLOSE);
                 client.getServerConnection().close();
             }
             return result;
@@ -154,7 +155,6 @@ public class Reciever {
                     break;
 
                 case "wait3"://wait for list request response
-                    //client.setQuietMode(true);//no output needed
                     UpdateLocalRoomList(client,RLM);
                     client.setStatus(Constants.COMMON_STATUS);
                     break;

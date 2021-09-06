@@ -20,8 +20,23 @@ public class Constants {
     public static String DELETE_JSON_TYPE = "delete";
     public static String MESSAGE_JSON_TYPE = "message";
     public static String QUIT_JSON_TYPE = "quit";
-    public static String WAIT_CREATE_RESPONSE = "wait1";
-    public static String WAIT_DELETE_RESPONSE = "wait2";
-    public static String WAIT_LIST_RESPONSE = "wait3";
+
+
+    public static String START_STATUS = "start";
+    public static String WAIT_CREATE_STATUS = "wait1";
+    public static String WATI_DELETE_STATUS = "wait2";
+    public static String WAIT_LIST_STATUS = "wait3";
+    public static String WAIT_QUIT_STATUS = "wait4";
+    public static String WAIT_IDCHANGE_STATUS = "wait5";
+    public static String WAIT_JOIN_STATUS = "wait6";
+
+    public static String CLOSE = "close";
     public static String COMMON_STATUS = "commonstatus";
+
+    //public static String WAIT_CREATE_RESPONSE = "wait1";
+    //public static String WAIT_DELETE_RESPONSE = "wait2";
+    //public static String WAIT_LIST_RESPONSE = "wait3";
+    //public static String WAIT_QUIT_RESPONSE = "wait4";
+
+
 }
