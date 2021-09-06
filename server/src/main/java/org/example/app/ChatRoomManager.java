@@ -258,6 +258,9 @@ public class ChatRoomManager {
                     String roomListMsg = RoomMsgService.genRoomListMsg();
                     client.getClientConnection().sentTextMessageToMe(roomListMsg);
                 }
+            }else{
+                String roomListMsg = RoomMsgService.genRoomListMsg();
+                client.getClientConnection().sentTextMessageToMe(roomListMsg);
             }
         }
     }
