@@ -27,9 +27,14 @@ public class JsonEncoder {
                     System.out.println("invalid command, join option needs 1 argument");
                     break;
                 }else if(arr.length == 2){//correct command paradigm
-                    JoinRoomMessage JRM = new JoinRoomMessage();
-                    JRM.setRoomid(arr[1]);
-                    result = gson.toJson(JRM);
+                    if(arr[1].equals(client.getRoomId())){
+                        System.out.println("Currently in " + client.getRoomId());
+                    }else{
+                        JoinRoomMessage JRM = new JoinRoomMessage();
+                        JRM.setRoomid(arr[1]);
+                        result = gson.toJson(JRM);
+                        client.setStatus(Constants.WAIT_JOIN_STATUS);
+                    }
                     break;
                 }else{//other unconsidered situation
                     System.out.println("command error");
@@ -74,8 +79,7 @@ public class JsonEncoder {
                     RCM.setRoomid(arr[1]);
                     result = gson.toJson(RCM);
 
-                    //client.setWaiting(true);
-                    client.setStatus(Constants.WAIT_CREATE_RESPONSE);
+                    client.setStatus(Constants.WAIT_CREATE_STATUS);
                     client.setTempRoomName(arr[1]);
                     //send a list request to update local roomlist
                     //client.getServerConnection().SendMessage("#list",client);
@@ -93,7 +97,7 @@ public class JsonEncoder {
                     RoomDeleteMessage RDM = new RoomDeleteMessage();
                     RDM.setRoomid(arr[1]);
                     result = gson.toJson(RDM);
-                    client.setStatus(Constants.WAIT_DELETE_RESPONSE);
+                    client.setStatus(Constants.WATI_DELETE_STATUS);
                     client.setTempRoomName(arr[1]);
 
                     //send a list request to update local roomlist
@@ -112,6 +116,7 @@ public class JsonEncoder {
                 if(arr.length == 1){
                     QuitMessage QM = new QuitMessage();
                     result = gson.toJson(QM);
+                    client.setStatus(Constants.WAIT_QUIT_STATUS);
                     break;
                 }else{
                     System.out.println("quit command error");

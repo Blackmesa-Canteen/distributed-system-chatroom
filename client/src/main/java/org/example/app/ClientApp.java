@@ -1,6 +1,7 @@
 package org.example.app;
 
 import org.example.network.ServerConnection;
+import org.example.utils.Constants;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.example.pojo.Client;
@@ -26,8 +27,6 @@ public class ClientApp {
         // already get hostname and port.
         System.out.println();
 
-        boolean connection_alive = false;
-
         //Default message is null
         String message = "";
         //Create console Scanner
@@ -37,7 +36,6 @@ public class ClientApp {
         //Start connection
         try{
             Socket s = new Socket(hostname,port);
-            connection_alive = true;
             org.example.network.ServerConnection conn = new ServerConnection(s,client);
             conn.start();
             client.setServerConnection(conn);
@@ -46,16 +44,21 @@ public class ClientApp {
             //set maximum waiting time for connection
             Thread.sleep(1000);
 
-            //listen on console Scanner
+
             while(conn.isalive()){
-                Thread.sleep(1000);//set maximum waiting time for connection
-                if(conn.isalive()){
-                    //get input message from console
-                    System.out.println("["+client.getRoomId()+"] "+client.getId()+">");
-                    message = in.nextLine();
-                    conn.SendMessage(message,client);
-                }else{
-                    conn.close();
+                Thread.sleep(1000);
+                switch (client.getStatus()){
+
+                    case "commonstatus"://commonstatus can send message and command
+                        System.out.println("["+client.getRoomId()+"] "+client.getId()+">");
+                        message = in.nextLine();//listen on console Scanner
+                        conn.SendMessage(message,client);
+                        break;
+                    case "close"://close status
+                        conn.close();
+                        break;
+                    default:
+                        break;
                 }
             }
 
