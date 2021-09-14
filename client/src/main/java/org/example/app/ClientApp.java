@@ -50,7 +50,7 @@ public class ClientApp {
                 switch (client.getStatus()){
 
                     case "commonstatus"://commonstatus can send message and command
-                        System.out.println("["+client.getRoomId()+"] "+client.getId()+">");
+                        System.out.print("["+client.getRoomId()+"] "+client.getId()+"> ");
                         message = in.nextLine();//listen on console Scanner
                         conn.SendMessage(message,client);
                         break;
