@@ -32,6 +32,7 @@ public class Client {
     private String status = Constants.START_STATUS;
     private String tempRoomContent;
     private List<RoomDTO> roomDTOList;
+    private boolean inputon = false;
 
     public String printroomDTOlist(){
         String result = "";

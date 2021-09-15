@@ -7,8 +7,6 @@ import java.util.*;
 import org.example.msgBean.*;
 import org.example.pojo.Client;
 
-import javax.xml.stream.events.Comment;
-
 public class Handler {
     private static final JsonEncoder JE = new JsonEncoder();
 
@@ -63,6 +61,10 @@ public class Handler {
         }
 
         if(!result.equals("")){
+            if(client.isInputon()){
+                System.out.print("\n");
+                client.setInputon(false);
+            }
             System.out.println(result);
             //the next status is still Commonstatus
             client.setStatus(Constants.COMMON_STATUS);

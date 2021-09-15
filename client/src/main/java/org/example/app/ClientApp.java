@@ -24,8 +24,6 @@ public class ClientApp {
     public static void main(String[] args) {
 
         handleArgs(args);
-        // already get hostname and port.
-        System.out.println();
 
         //Default message is null
         String message = "";
@@ -50,9 +48,12 @@ public class ClientApp {
                 switch (client.getStatus()){
 
                     case "commonstatus"://commonstatus can send message and command
+                        client.setInputon(true);
                         System.out.print("["+client.getRoomId()+"] "+client.getId()+"> ");
                         message = in.nextLine();//listen on console Scanner
+                        client.setInputon(false);
                         conn.SendMessage(message,client);
+
                         break;
                     case "close"://close status
                         conn.close();
