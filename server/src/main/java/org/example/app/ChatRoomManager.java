@@ -109,6 +109,8 @@ public class ChatRoomManager {
                     client.getClientConnection().sentTextMessageToMe(RoomMsgService.genRoomListMsg());
                 }
             }
+        }else{
+            client.getClientConnection().sentTextMessageToMe(RoomMsgService.genRoomListMsg());
         }
 
         return false;
